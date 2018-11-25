@@ -38,6 +38,13 @@
             name="Solution Content Type (solution.txt)"
             priority="normal">
       </content-type>
+      <content-type
+            base-type="org.eclipse.core.runtime.text"
+            file-names="Test.java"
+            id="de.upb.swt.SootLSP-contenttype"
+            name="SootLSP Content Type (*.java)"
+            priority="normal">
+      </content-type>
    </extension>
    <extension
          point="org.eclipse.lsp4e.languageServer">
@@ -86,6 +93,15 @@
             contentType="org.eclipsecon.solution-contenttype"
             id="org.eclipsecon.languageserverplugin.solutionserver">
       </contentTypeMapping>
+        <server
+            class="org.eclipsecon.languageserverplugin.ConnectionSootLSP"
+            id="org.eclipsecon.languageserverplugin.SootLSPServer"
+            label="SootLSP Server">
+      </server>
+      <contentTypeMapping
+            contentType="de.upb.swt.SootLSP-contenttype"
+            id="org.eclipsecon.languageserverplugin.SootLSPServer">
+      </contentTypeMapping>
    </extension>
    <extension
          point="org.eclipse.ui.editors">
@@ -107,6 +123,10 @@
       </editorContentTypeBinding>
       <editorContentTypeBinding
             contentTypeId="org.eclipsecon.solution-contenttype"
+            editorId="org.eclipse.ui.genericeditor.GenericEditor">
+      </editorContentTypeBinding>
+      <editorContentTypeBinding
+            contentTypeId="de.upb.swt.SootLSP-contenttype"
             editorId="org.eclipse.ui.genericeditor.GenericEditor">
       </editorContentTypeBinding>
    </extension>

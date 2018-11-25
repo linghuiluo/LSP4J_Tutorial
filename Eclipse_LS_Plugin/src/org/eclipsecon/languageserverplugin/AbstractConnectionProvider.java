@@ -25,6 +25,7 @@ public class AbstractConnectionProvider  implements StreamConnectionProvider {
 		this.ls = ls;
 	}
 	
+	
 	@Override
 	public void start() throws IOException {
 		PipedInputStream in = new PipedInputStream();

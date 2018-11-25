@@ -15,4 +15,5 @@ Require-Bundle: org.eclipse.core.contenttype;bundle-version="3.6.0",
  org.eclipsecon.exercise1;bundle-version="1.0.0",
  org.eclipsecon.exercise2;bundle-version="1.0.0",
  org.eclipsecon.exercise3;bundle-version="1.0.0",
+ de.upb.swt.SootLSPServer;bundle-version="1.0.0",
  org.eclipsecon.exercise4;bundle-version="1.0.0"
