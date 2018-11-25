@@ -8,12 +8,14 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.CodeActionParams;
 import org.eclipse.lsp4j.CodeLens;
 import org.eclipse.lsp4j.CodeLensParams;
 import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionList;
+import org.eclipse.lsp4j.CompletionParams;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.eclipse.lsp4j.DidChangeTextDocumentParams;
@@ -24,6 +26,7 @@ import org.eclipse.lsp4j.DocumentFormattingParams;
 import org.eclipse.lsp4j.DocumentHighlight;
 import org.eclipse.lsp4j.DocumentOnTypeFormattingParams;
 import org.eclipse.lsp4j.DocumentRangeFormattingParams;
+import org.eclipse.lsp4j.DocumentSymbol;
 import org.eclipse.lsp4j.DocumentSymbolParams;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.Location;
@@ -41,7 +44,6 @@ import org.eclipse.lsp4j.TextEdit;
 import org.eclipse.lsp4j.WorkspaceEdit;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.TextDocumentService;
-import org.eclipsecon.solution.EclipseConMap;
 import org.eclipsecon.solution.EclipseConDocumentModel.Route;
 import org.eclipsecon.solution.EclipseConDocumentModel.VariableDefinition;
 
@@ -56,7 +58,7 @@ public class EclipseConTextDocumentService implements TextDocumentService {
 	
 	@Override
 	public CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(
-			TextDocumentPositionParams position) {
+      CompletionParams position) {
 		return CompletableFuture.supplyAsync(() -> Either.forLeft(EclipseConMap.INSTANCE.all.stream()
 				.map(word -> {
 					CompletionItem item = new CompletionItem();
@@ -148,33 +150,34 @@ public class EclipseConTextDocumentService implements TextDocumentService {
 		return null;
 	}
 
-	@Override
-	public CompletableFuture<List<? extends SymbolInformation>> documentSymbol(DocumentSymbolParams params) {
-		EclipseConDocumentModel model = docs.get(params.getTextDocument().getUri());
-		if(model == null)
-			return null;
-		return CompletableFuture.supplyAsync(() -> 
-			docs.get(params.getTextDocument().getUri()).getResolvedLines().stream().map(line -> {
-				SymbolInformation symbol = new SymbolInformation();
-				symbol.setLocation(new Location(params.getTextDocument().getUri(), new Range(
-						new Position(line.line, line.charOffset),
-						new Position(line.line, line.charOffset + line.text.length()))));
-				if (line instanceof VariableDefinition) {
-					symbol.setKind(SymbolKind.Variable);
-					symbol.setName(((VariableDefinition) line).variableName);
-				} else if (line instanceof Route) {
-					symbol.setKind(SymbolKind.String);
-					symbol.setName(((Route) line).name);
-				}
-				return symbol;
-			}).collect(Collectors.toList())
-		);
-	}
+  @Override
+  public CompletableFuture<List<Either<SymbolInformation, DocumentSymbol>>> documentSymbol(DocumentSymbolParams params) {
+    EclipseConDocumentModel model = docs.get(params.getTextDocument().getUri());
+    if (model == null) {
+      return null;
+    }
+    CompletableFuture<List<Either<SymbolInformation, DocumentSymbol>>> ret = CompletableFuture
+        .supplyAsync(() -> docs.get(params.getTextDocument().getUri()).getResolvedLines().stream().map(line -> {
+          SymbolInformation symbol = new SymbolInformation();
+          symbol.setLocation(new Location(params.getTextDocument().getUri(), new Range(
+              new Position(line.line, line.charOffset), new Position(line.line, line.charOffset + line.text.length()))));
+          if (line instanceof VariableDefinition) {
+            symbol.setKind(SymbolKind.Variable);
+            symbol.setName(((VariableDefinition) line).variableName);
+          } else if (line instanceof Route) {
+            symbol.setKind(SymbolKind.String);
+            symbol.setName(((Route) line).name);
+          }
+          Either<SymbolInformation, DocumentSymbol> either = Either.forLeft(symbol);
+          return either;
+        }).collect(Collectors.toList()));
+    return ret;
+  }
 
-	@Override
-	public CompletableFuture<List<? extends Command>> codeAction(CodeActionParams params) {
-		return null;
-	}
+  @Override
+  public CompletableFuture<List<Either<Command, CodeAction>>> codeAction(CodeActionParams params) {
+    return null;
+  }
 
 	@Override
 	public CompletableFuture<List<? extends CodeLens>> codeLens(CodeLensParams params) {
